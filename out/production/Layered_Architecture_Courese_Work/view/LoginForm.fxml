@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="632.0" prefWidth="499.0" style="-fx-background-color: #2c3e50;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.LoginFormController">
+   <children>
+      <Label layoutX="126.0" layoutY="14.0" prefHeight="55.0" prefWidth="248.0" text=" The Wholesale Dealer" textFill="#cadbe1">
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Label>
+      <Pane fx:id="pane" layoutX="4.0" layoutY="2.0" onMouseDragged="#dragged" onMousePressed="#pressed" prefHeight="88.0" prefWidth="499.0" AnchorPane.bottomAnchor="544.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+      <Label layoutX="236.0" layoutY="57.0" prefHeight="25.0" prefWidth="130.0" text="with mega stock ..." textFill="#a5b1b5">
+         <font>
+            <Font name="System Italic" size="16.0" />
+         </font>
+      </Label>
+      <Label layoutX="89.0" layoutY="272.0" prefHeight="42.0" prefWidth="310.0" style="-fx-background-color: #bdc3c7; -fx-background-radius: 5 15 5 15;" />
+      <JFXTextField fx:id="txtUserName" focusColor="WHITE" labelFloat="true" layoutX="101.0" layoutY="268.0" prefHeight="25.0" prefWidth="288.0" promptText="User Name" unFocusColor="WHITE">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </JFXTextField>
+      <Label layoutX="92.0" layoutY="350.0" prefHeight="42.0" prefWidth="310.0" style="-fx-background-color: #bdc3c7; -fx-background-radius: 5 15 5 15;" />
+      <JFXTextField fx:id="txtPassword" focusColor="WHITE" labelFloat="true" layoutX="104.0" layoutY="346.0" prefHeight="25.0" prefWidth="288.0" promptText="Password" unFocusColor="WHITE">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </JFXTextField>
+      <Label layoutX="101.0" layoutY="476.0" text="Create New Account" textFill="#cadbe1">
+         <font>
+            <Font size="16.0" />
+         </font>
+      </Label>
+      <ImageView fitHeight="117.0" fitWidth="138.0" layoutX="192.0" layoutY="102.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../assets/avatar.png" />
+         </image>
+      </ImageView>
+      <Label alignment="CENTER" layoutX="420.0" opacity="0.29" prefHeight="33.0" prefWidth="79.0" style="-fx-background-color: white; -fx-background-radius: 0 0 0 10;" textFill="RED">
+         <font>
+            <Font size="22.0" />
+         </font>
+      </Label>
+      <JFXButton buttonType="RAISED" layoutX="302.0" layoutY="418.0" onAction="#signInOnAction" prefHeight="34.0" prefWidth="100.0" ripplerFill="#8f9fcf" style="-fx-border-color: #34495e; -fx-border-radius: 5 10 5 10; -fx-border-width: 2; -fx-background-radius: 5 10 5 10; -fx-background-color: #2d3436;" text="Sign In" textFill="#a9b2b5">
+         <font>
+            <Font size="14.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </JFXButton>
+      <JFXButton buttonType="RAISED" layoutX="188.0" layoutY="517.0" onAction="#signUpOnAction" prefHeight="42.0" prefWidth="117.0" ripplerFill="#8f9fcf" style="-fx-border-color: #34495e; -fx-border-radius: 5 10 5 10; -fx-border-width: 2; -fx-background-radius: 5 10 5 10; -fx-background-color: #2d3436;" text="Sign Up" textFill="#a9b2b5">
+         <font>
+            <Font size="14.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </JFXButton>
+      <JFXButton alignment="CENTER" buttonType="RAISED" layoutX="460.0" onAction="#exitOnAction" prefHeight="33.0" prefWidth="39.0" ripplerFill="#f8b0b0" style="-fx-background-radius: 0 0 0 10;" text="X" textFill="RED">
+         <font>
+            <Font size="15.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </JFXButton>
+      <Line endX="-88.0" layoutX="535.0" layoutY="16.0" startX="-100.0" stroke="#434546" />
+      <JFXButton fx:id="btnmini" alignment="CENTER" buttonType="RAISED" layoutX="422.0" onAction="#minimize" prefHeight="33.0" prefWidth="39.0" ripplerFill="WHITE" style="-fx-background-radius: 0 0 0 10;" text="." textFill="#bcb3b3">
+         <font>
+            <Font size="1.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </JFXButton>
+   </children>
+</AnchorPane>

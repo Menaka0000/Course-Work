@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="context" prefHeight="788.0" prefWidth="836.0" style="-fx-background-color: #2c3e50;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.NewOrderController">
+   <children>
+      <ComboBox fx:id="cmbCustId" layoutX="39.0" layoutY="135.0" prefWidth="150.0" promptText="Customer Id" />
+      <ComboBox fx:id="cmbItemId" layoutX="39.0" layoutY="206.0" prefWidth="150.0" promptText="Item Code" />
+      <TextField fx:id="txtName" layoutX="208.0" layoutY="135.0" prefHeight="25.0" prefWidth="170.0" promptText="Name" />
+      <TextField fx:id="txtAddress" layoutX="385.0" layoutY="135.0" prefHeight="25.0" prefWidth="247.0" promptText="Address" />
+      <TextField fx:id="txtPostalCode" layoutX="639.0" layoutY="135.0" prefHeight="25.0" prefWidth="170.0" promptText="Postal Code" />
+      <TextField fx:id="txtDescription" layoutX="208.0" layoutY="206.0" prefHeight="25.0" prefWidth="258.0" promptText="Description" />
+      <TextField fx:id="txtUnitPrice" layoutX="473.0" layoutY="206.0" prefHeight="25.0" prefWidth="100.0" />
+      <TextField fx:id="txtQtyOnHand" layoutX="581.0" layoutY="206.0" prefHeight="25.0" prefWidth="120.0" />
+      <TextField fx:id="txtOrderQty" layoutX="709.0" layoutY="206.0" prefHeight="25.0" prefWidth="100.0" />
+      <Label layoutX="39.0" layoutY="59.0" text="Place Order" textFill="#a9b2b5">
+         <font>
+            <Font size="22.0" />
+         </font>
+      </Label>
+      <JFXButton buttonType="RAISED" layoutX="709.0" layoutY="245.0" onAction="#addToCartOnAction" prefHeight="34.0" prefWidth="100.0" ripplerFill="#8f9fcf" style="-fx-border-color: #34495e; -fx-border-radius: 5 10 5 10; -fx-border-width: 2; -fx-background-radius: 5 10 5 10; -fx-background-color: #2d3436;" text="Add To Cart" textFill="#a9b2b5">
+         <font>
+            <Font size="14.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </JFXButton>
+      <TableView fx:id="tblCart" layoutX="39.0" layoutY="321.0" prefHeight="347.0" prefWidth="770.0">
+         <columns>
+            <TableColumn fx:id="colItemCode" prefWidth="75.0" text="Item Code" />
+            <TableColumn fx:id="colDescription" prefWidth="179.0" text="Description" />
+            <TableColumn fx:id="colUnitPrice" prefWidth="93.0" text="Unit Price" />
+            <TableColumn fx:id="colQty" prefWidth="92.0" text="Qty" />
+            <TableColumn fx:id="colUpdate" prefWidth="59.0" />
+            <TableColumn fx:id="colUpdate1" prefWidth="51.0" />
+            <TableColumn fx:id="colTotal" prefWidth="130.0" text="Total" />
+            <TableColumn fx:id="colClear" prefWidth="88.0" />
+         </columns>
+      </TableView>
+      <Label layoutX="39.0" layoutY="702.0" text="Net Total : " textFill="#00cec9">
+         <font>
+            <Font size="20.0" />
+         </font>
+      </Label>
+      <Label fx:id="lblTtl" layoutX="141.0" layoutY="702.0" prefHeight="30.0" prefWidth="129.0" textFill="#00cec9">
+         <font>
+            <Font size="20.0" />
+         </font>
+      </Label>
+      <JFXButton buttonType="RAISED" layoutX="709.0" layoutY="724.0" onAction="#placeOrderOnAction" prefHeight="34.0" prefWidth="100.0" ripplerFill="#8f9fcf" style="-fx-border-color: #34495e; -fx-border-radius: 5 10 5 10; -fx-border-width: 2; -fx-background-radius: 5 10 5 10; -fx-background-color: #2d3436;" text="Place Order" textFill="#a9b2b5">
+         <font>
+            <Font size="14.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </JFXButton>
+      <JFXButton buttonType="RAISED" layoutX="612.0" layoutY="724.0" onAction="#cancelOnAction" prefHeight="34.0" prefWidth="84.0" ripplerFill="#8f9fcf" style="-fx-border-color: #34495e; -fx-border-radius: 5 10 5 10; -fx-border-width: 2; -fx-background-radius: 5 10 5 10; -fx-background-color: #2d3436;" text="Cancel" textFill="#a9b2b5">
+         <font>
+            <Font size="14.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </JFXButton>
+      <Label layoutX="480.0" layoutY="183.0" prefHeight="17.0" prefWidth="66.0" text="Unit Price" textFill="WHITE" />
+      <Label layoutX="648.0" layoutY="109.0" prefHeight="17.0" prefWidth="84.0" text="Postal Code" textFill="WHITE" />
+      <Label layoutX="717.0" layoutY="183.0" prefHeight="17.0" prefWidth="66.0" text="Order Qty" textFill="WHITE" />
+      <Label layoutX="590.0" layoutY="183.0" prefHeight="17.0" prefWidth="84.0" text="QTY On Hand" textFill="WHITE" />
+      <Label fx:id="lblOrderId" alignment="TOP_LEFT" layoutX="186.0" layoutY="70.0" prefHeight="25.0" prefWidth="84.0" textFill="#a9b2b5" />
+      <Label fx:id="lblOrderId1" alignment="CENTER_RIGHT" layoutX="152.0" layoutY="65.0" prefHeight="25.0" prefWidth="30.0" text="   Id :" textFill="#a9b2b5" />
+   </children>
+</AnchorPane>
