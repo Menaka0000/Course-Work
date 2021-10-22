@@ -28,6 +28,7 @@ public class ItemDAOImpl implements ItemDAO {
         return CrudUtil.executeUpdate("INSERT INTO `Item` VALUES(?,?,?,?)",i.getCode(),i.getDescription(),
                 i.getQtyOnHand(), i.getUnitPrice());
     }
+
     @Override
     public List<String> getItemIds() throws SQLException, ClassNotFoundException {
         ResultSet rst =  CrudUtil.executeQuery("SELECT * FROM `Item`");
@@ -61,7 +62,9 @@ public class ItemDAOImpl implements ItemDAO {
         if (CrudUtil.executeUpdate("UPDATE `item` SET Description=?,qtyOnHand=?,unitPrice=? WHERE ItemCode=?",
                 item.getDescription(),item.getQtyOnHand(),item.getUnitPrice(),item.getCode())){
             new Alert (Alert.AlertType.CONFIRMATION,item.getCode()+" Item was Updated Successfully").show();
+            return true;
         }else {new Alert (Alert.AlertType.WARNING," Try Again").show();}
+        return false;
     }
 
     @Override
@@ -76,5 +79,15 @@ public class ItemDAOImpl implements ItemDAO {
             CrudUtil.executeUpdate("DELETE FROM `item`  WHERE ItemCode=?",item.getId());
             items.removeIf(x -> x.getId().equals(item.getId()));
         }
+    }
+
+    @Override
+    public boolean delete(String s) throws SQLException, ClassNotFoundException {
+        return false;
+    }
+
+    @Override
+    public ArrayList<Item> getAll() throws SQLException, ClassNotFoundException {
+        return null;
     }
 }

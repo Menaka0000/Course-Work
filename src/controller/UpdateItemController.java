@@ -65,7 +65,7 @@ public class UpdateItemController {
         if (lblPreId.getText().equals("") ){new Alert(Alert.AlertType.WARNING,"Please select a row from `Item` table..").show();}
         else {
             if (txtDescription.getText().equals("")){new Alert(Alert.AlertType.WARNING,"Some fields may be empty..").show();}
-            else{   new ItemDAOImpl().updateItem(new Item(lblPreId.getText(),txtDescription.getText(),Integer.parseInt(txtQtyOnHand.getText())
+            else{   new ItemDAOImpl().update(new Item(lblPreId.getText(),txtDescription.getText(),Integer.parseInt(txtQtyOnHand.getText())
                     ,Integer.parseInt(txtUnitPrice.getText())));
             }
         }
