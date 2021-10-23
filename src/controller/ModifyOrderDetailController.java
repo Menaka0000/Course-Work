@@ -1,5 +1,6 @@
 package controller;
 
+import dao.custom.impl.OrderDAOImpl;
 import db.DbConnection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -9,6 +10,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 import model.Item;
 import model.ItemDetails;
+import model.Order;
 import model.tm.CartTm;
 
 import java.sql.Connection;
@@ -408,6 +410,10 @@ public class ModifyOrderDetailController {
     }
 
     public void updateOnAction(ActionEvent actionEvent) throws SQLException, ClassNotFoundException {
+        if(!containsDigit(txtOrderIdOrName.getText())){
+            new Alert(Alert.AlertType.WARNING,"Select your order id to continue").show();
+            return;
+        }
         ArrayList<ItemDetails> items=new ArrayList<>();
         double total=0;
         for (CartTm temptm:obList1
@@ -415,13 +421,13 @@ public class ModifyOrderDetailController {
             total+=temptm.getTotal();
             items.add(new ItemDetails(temptm.getCode(),temptm.getUnitPrice(),temptm.getQty()));
         }
-      new OrderController().modifyOrder(items,total,txtOrderIdOrName,cmbOrderIds);
+        new OrderDAOImpl().update(new Order(txtOrderIdOrName.getText(),total,items,cmbOrderIds));
         DbConnection.getInstance().getConnection().prepareStatement("DELETE FROM `tempItem`").executeUpdate();
 
     }
 
     public void deleteOnAction(ActionEvent actionEvent) throws SQLException, ClassNotFoundException {
-       new OrderController().deleteOrder(obList1,txtOrderIdOrName.getText());
+       new OrderDAOImpl().deleteOrder(obList1,txtOrderIdOrName.getText());
        DbConnection.getInstance().getConnection().prepareStatement("DELETE FROM `tempItem`").executeUpdate();
 
     }

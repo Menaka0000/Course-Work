@@ -1,4 +1,5 @@
-package dao;
+package dao.custom;
+import dao.CrudDAO;
 import model.Customer;
 import java.sql.SQLException;
 import java.util.List;

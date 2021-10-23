@@ -1,7 +1,7 @@
 package controller;
 
 import com.jfoenix.controls.JFXTextField;
-import dao.CustomerDAOImpl;
+import dao.custom.impl.CustomerDAOImpl;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Alert;
 import model.Customer;

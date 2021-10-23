@@ -1,5 +1,7 @@
-package dao;
+package dao.custom.impl;
 
+import dao.CrudUtil;
+import dao.custom.CustomerDAO;
 import model.Customer;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,7 +11,7 @@ import java.util.List;
 public class CustomerDAOImpl implements CustomerDAO {
     @Override
     public boolean add(Customer c) throws SQLException, ClassNotFoundException {
-        ResultSet rst =CrudUtil.executeQuery("SELECT * FROM `customer`");
+        ResultSet rst = CrudUtil.executeQuery("SELECT * FROM `customer`");
         while(rst.next()){
             if(rst.getString(1).equals(c.getId())){
                 return false;

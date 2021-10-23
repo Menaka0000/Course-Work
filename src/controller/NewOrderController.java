@@ -1,9 +1,10 @@
 package controller;
 
-import dao.CustomerDAO;
-import dao.CustomerDAOImpl;
-import dao.ItemDAO;
-import dao.ItemDAOImpl;
+import dao.custom.CustomerDAO;
+import dao.custom.impl.CustomerDAOImpl;
+import dao.custom.ItemDAO;
+import dao.custom.impl.ItemDAOImpl;
+import dao.custom.impl.OrderDAOImpl;
 import db.DbConnection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -102,7 +103,7 @@ public class NewOrderController {
     }
 
     private void setOrderId() throws SQLException, ClassNotFoundException {
-        lblOrderId.setText(new OrderController().getOrderId());
+        lblOrderId.setText(new OrderDAOImpl().getOrderId());
     }
 
     public void logOutOnAction(ActionEvent actionEvent) {
@@ -368,10 +369,10 @@ public class NewOrderController {
                 total,
                 items
         );
-        if (new OrderController().placeOrder(order,obList)){
+        if (new OrderDAOImpl().add(order)){
             DbConnection.getInstance().getConnection().prepareStatement("DELETE FROM `tempItem`").executeUpdate();
             tblCart.getItems().clear();
-            lblOrderId.setText(new OrderController().getOrderId());
+            lblOrderId.setText(new OrderDAOImpl().getOrderId());
             new Alert(Alert.AlertType.CONFIRMATION,"Order Placed..").show();
         }else{
             new Alert(Alert.AlertType.WARNING,"Try Again..").show();

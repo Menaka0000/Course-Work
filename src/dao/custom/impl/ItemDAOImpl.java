@@ -1,6 +1,7 @@
-package dao;
+package dao.custom.impl;
 
-import db.DbConnection;
+import dao.CrudUtil;
+import dao.custom.ItemDAO;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
@@ -8,8 +9,6 @@ import javafx.scene.control.ButtonType;
 import model.Item;
 import model.tm.FullDetailedItemTm;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -19,7 +18,7 @@ import java.util.Optional;
 public class ItemDAOImpl implements ItemDAO {
     @Override
     public boolean add(Item i) throws SQLException, ClassNotFoundException {
-        ResultSet rst =CrudUtil.executeQuery("SELECT * FROM `Item`");
+        ResultSet rst = CrudUtil.executeQuery("SELECT * FROM `Item`");
         while(rst.next()){
             if(rst.getString(1).equals(i.getCode())){
                 return false;

@@ -1,5 +1,8 @@
 package model;
 
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
+
 import java.util.ArrayList;
 
 public class Order {
@@ -7,6 +10,17 @@ public class Order {
     private String customerId;
     private String orderDate;
     private String orderTime;
+    private double cost;
+    /* Bellow instance variables are used to modify an order */
+    private ArrayList<ItemDetails> items;
+    private ComboBox<String> cmbOrderIds;
+
+    public Order(String orderId, double cost, ArrayList<ItemDetails> items,  ComboBox<String> cmbOrderIds) {
+        this.orderId = orderId;
+        this.cost = cost;
+        this.items = items;
+        this.cmbOrderIds = cmbOrderIds;
+    }
 
     public Order() {
     }
@@ -20,8 +34,9 @@ public class Order {
         this.items = items;
     }
 
-    private double cost;
-private ArrayList<ItemDetails>items;
+    public ComboBox<String> getCmbOrderIds() {
+        return cmbOrderIds;
+    }
 
     public String getOrderId() {
         return orderId;
@@ -70,6 +85,7 @@ private ArrayList<ItemDetails>items;
     public void setItems(ArrayList<ItemDetails> items) {
         this.items = items;
     }
+
     @Override
     public String toString() {
         return "Order{" +
