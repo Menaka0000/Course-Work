@@ -285,7 +285,7 @@ public class NewOrderController {
     }
 
     public void setCustomerData(String customerId) throws SQLException, ClassNotFoundException {
-        Customer c1 = customerDAO.getCustomer(customerId);
+        Customer c1 = customerDAO.search(customerId);
         if (c1 == null) {
             new Alert(Alert.AlertType.WARNING, "Empty Result Set");
         } else {
@@ -302,7 +302,7 @@ public class NewOrderController {
             if(resultSet.getString(1).equals(customerId)){variable=1;break;}
         }
         if(variable==0){
-            Item item1 = itemDAO.getItem(customerId);
+            Item item1 = itemDAO.search(customerId);
             if (item1 == null) {
                 new Alert(Alert.AlertType.WARNING, "Empty Result Set");
             } else {
@@ -318,7 +318,7 @@ public class NewOrderController {
 
     private void setItemData(String customerId,int x,TextField txtDescription,TextField txtUnitPrice,TextField txtQtyOnHand,ComboBox<String> cmbItemId) throws SQLException, ClassNotFoundException {
     // when we try to modify an Order, this method will call from there.
-        variable=0;
+
         Item item1 = null;
         PreparedStatement stm = DbConnection.getInstance()
                 .getConnection().prepareStatement("SELECT * FROM `tempItem` WHERE ItemCode=?");
