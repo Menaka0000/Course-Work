@@ -359,7 +359,7 @@ public class NewOrderController {
         for (CartTm temptm:obList
              ) {
             total+=temptm.getTotal();
-            items.add(new ItemDetails(temptm.getCode(),temptm.getUnitPrice(),temptm.getQty()));
+            items.add(new ItemDetails(lblOrderId.getText(),temptm.getCode(),temptm.getUnitPrice(),temptm.getQty()));
         }
         Order order=new Order(
                 lblOrderId.getText(),

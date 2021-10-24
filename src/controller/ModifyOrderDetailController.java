@@ -63,6 +63,7 @@ public class ModifyOrderDetailController {
                 addListener((observable, oldValue, newValue) -> {
                     try {
                         new NewOrderController().setItemData(newValue,txtDescription, txtUnitPrice, txtQtyOnHand, cmbItemId);
+                        System.out.println(newValue);
                     } catch (SQLException throwables) {
                         throwables.printStackTrace();
                     } catch (ClassNotFoundException e) {

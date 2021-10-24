@@ -1,6 +1,7 @@
 package model;
 
 public class ItemDetails {
+    private String orderId;
     private String itemCode;
     private double unitPrice;
     private int qtyForSell;
@@ -12,6 +13,13 @@ public class ItemDetails {
         this.setItemCode(itemCode);
         this.setUnitPrice(unitPrice);
         this.setQtyForSell(qtyForSell);
+    }
+
+    public ItemDetails(String orderId, String itemCode, double unitPrice, int qtyForSell) {
+        this.orderId = orderId;
+        this.itemCode = itemCode;
+        this.unitPrice = unitPrice;
+        this.qtyForSell = qtyForSell;
     }
 
     public String getItemCode() {
@@ -37,6 +45,9 @@ public class ItemDetails {
     public void setQtyForSell(int qtyForSell) {
         this.qtyForSell = qtyForSell;
     }
+
+    public String getOrderId() {return orderId; }
+
 
     @Override
     public String toString() {

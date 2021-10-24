@@ -2,13 +2,16 @@ package dao.custom.impl;
 
 import dao.CrudUtil;
 import dao.custom.ItemDAO;
+import db.DbConnection;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import model.Item;
+import model.ItemDetails;
 import model.tm.FullDetailedItemTm;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -16,6 +19,9 @@ import java.util.List;
 import java.util.Optional;
 
 public class ItemDAOImpl implements ItemDAO {
+
+
+
     @Override
     public boolean add(Item i) throws SQLException, ClassNotFoundException {
         ResultSet rst = CrudUtil.executeQuery("SELECT * FROM `Item`");
@@ -42,7 +48,7 @@ public class ItemDAOImpl implements ItemDAO {
 
     @Override
     public Item search(String id) throws SQLException, ClassNotFoundException {
-        ResultSet rst =  CrudUtil.executeQuery("SELECT * FROM `Item` WHERE ItemCode=?",id);
+        ResultSet rst =  CrudUtil.executeQuery("SELECT * FROM `item` WHERE ItemCode=?",id);
         if (rst.next()) {
             return new Item(
                     rst.getString(1),
@@ -67,11 +73,21 @@ public class ItemDAOImpl implements ItemDAO {
     }
 
     @Override
+    public boolean updateWhenOrderIsPurchasing(ItemDetails temp) throws SQLException, ClassNotFoundException {
+        return CrudUtil.executeUpdate("UPDATE `item` SET qtyOnHand=? WHERE ItemCode=?", (search(temp.getItemCode()).getQtyOnHand() - temp.getQtyForSell())
+                , temp.getItemCode());
+    }
+
+    @Override
+    public boolean updateWhenOrderIsBeingUpdating(String id,int updatedValue) throws SQLException, ClassNotFoundException {
+        return CrudUtil.executeUpdate("UPDATE `item` SET qtyOnHand=? WHERE ItemCode=?",updatedValue,id);
+    }
+
+    @Override
     public void deleteItem(FullDetailedItemTm item, ObservableList<FullDetailedItemTm> items) throws SQLException, ClassNotFoundException {
         Alert alert  = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure,\n you want to Delete ( "+item.getId()+" ) Item" );
         ButtonType yesButtonType = new ButtonType("Yes", ButtonBar.ButtonData.YES);
         ButtonType cancelButtonType = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-
         alert.getButtonTypes().setAll(cancelButtonType, yesButtonType );
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == yesButtonType) {

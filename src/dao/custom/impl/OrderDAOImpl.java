@@ -1,7 +1,10 @@
 package dao.custom.impl;
 
 import controller.ModifyOrderDetailController;
+import dao.CrudUtil;
+import dao.custom.ItemDAO;
 import dao.custom.OrderDAO;
+import dao.custom.OrderDetailDAO;
 import db.DbConnection;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
@@ -18,6 +21,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class OrderDAOImpl implements OrderDAO {
+    private final ItemDAO itemDAO = new ItemDAOImpl();
+    private final OrderDetailDAO orderDetailDAO = new OrderDetailDAOImpl();
 
     @Override
     public String getOrderId() throws SQLException, ClassNotFoundException {
@@ -25,27 +30,20 @@ public class OrderDAOImpl implements OrderDAO {
         if (rst.next()){
             int tempId = Integer.parseInt(rst.getString(1).split("-")[1]);
             tempId=tempId+1;
-            if(tempId<9){return "O-00"+tempId;}
-            else if(tempId<99){return "O-0"+tempId;}
+            if(tempId<=9){return "O-00"+tempId;}
+            else if(tempId<=99){return "O-0"+tempId;}
             else {return "O-"+tempId;}
         }else{return "O-001";}
     }
 
 
     @Override
-    public boolean add(Order order){
-        Connection con=null;
+    public boolean add(Order order) throws SQLException, ClassNotFoundException {
+        Connection con=DbConnection.getInstance().getConnection();
+        con.setAutoCommit(false);
         try {
-            con=DbConnection.getInstance().getConnection();
-            con.setAutoCommit(false);
-            PreparedStatement stm = con.prepareStatement("INSERT INTO `Order` VALUES (?,?,?,?,?)");
-            stm.setObject(1,order.getOrderId());
-            stm.setObject(2,order.getCustomerId());
-            stm.setObject(3,order.getOrderDate());
-            stm.setObject(4,order.getOrderTime());
-            stm.setObject(5,order.getCost());
-
-            if(stm.executeUpdate()>0){
+            if(CrudUtil.executeUpdate("INSERT INTO `Order` VALUES (?,?,?,?,?)", order.getOrderId(), order.getCustomerId()
+                    , order.getOrderDate(), order.getOrderTime(), order.getCost())){
                 if( saveOrderDetail(order) && updateItemTable(order)){
                     con.commit();
                     return true;
@@ -74,32 +72,17 @@ public class OrderDAOImpl implements OrderDAO {
     @Override
     public  boolean saveOrderDetail(Order order) throws SQLException, ClassNotFoundException {
         for (ItemDetails temp :order.getItems()
-             ) {
-            PreparedStatement stm = DbConnection.getInstance().getConnection().
-                    prepareStatement("INSERT INTO `Order Detail` VALUES (?,?,?,?)");
-            stm.setObject(1,temp.getItemCode());
-            stm.setObject(2,order.getOrderId());
-            stm.setObject(3,temp.getQtyForSell());
-            stm.setObject(4,temp.getUnitPrice());
-            if (stm.executeUpdate()>0){}else{return false;}
+        ) {
+            orderDetailDAO.add(temp);
         }
         return true;
     }
 
     @Override
     public boolean updateItemTable(Order order) throws SQLException, ClassNotFoundException {
-        int qty;
         for (ItemDetails temp:order.getItems()
              ) {
-            PreparedStatement stm1 = DbConnection.getInstance().getConnection().prepareStatement("SELECT * FROM `item` WHERE ItemCode=?");
-            stm1.setObject(1,temp.getItemCode());
-            ResultSet rst = stm1.executeQuery();
-            rst.next();
-            qty=Integer.parseInt(rst.getString(3));
-            PreparedStatement stm = DbConnection.getInstance().getConnection().prepareStatement("UPDATE `item` SET qtyOnHand=? WHERE ItemCode=?");
-            stm.setObject(1,(qty-temp.getQtyForSell()));
-            stm.setObject(2,temp.getItemCode());
-            if (stm.executeUpdate()>0){}else {return false;}
+                 return itemDAO.updateWhenOrderIsPurchasing(temp);
         }return true;
     }
 
@@ -116,48 +99,51 @@ public class OrderDAOImpl implements OrderDAO {
 
     @Override
     public void modifyOrderDetail(String orderId,ArrayList<ItemDetails> items) throws SQLException, ClassNotFoundException {
-        Connection con=DbConnection.getInstance().getConnection();
+        Connection con = DbConnection.getInstance().getConnection();
         con.setAutoCommit(false);
-        PreparedStatement pst = con.prepareStatement("SELECT * FROM `order Detail` WHERE  orderId=?");
-        pst.setObject(1,orderId);
-        ResultSet rst = pst.executeQuery();
-        while(rst.next()){
+        try {
+            ItemDetails itemDetail = orderDetailDAO.search(orderId);
             for (ItemDetails x:items
             ) {
-                if (rst.getString(1).equals(x.getItemCode())){
-                    if(rst.getInt(3)>x.getQtyForSell()){
-                        int difference=rst.getInt(3)-x.getQtyForSell();
-                        PreparedStatement pst1 = con.prepareStatement("Select * FROM `item` WHERE ItemCode=?");
-                        pst1.setObject(1,rst.getString(1));
-                        ResultSet rst1 = pst1.executeQuery();rst1.next();
-                        int updatedValue=rst1.getInt(3)+difference;
-                        PreparedStatement pst2 = con.prepareStatement("UPDATE  `item`SET qtyOnHand=? WHERE ItemCode=?");
-                        pst2.setObject(1,updatedValue);
-                        pst2.setObject(2,rst.getString(1));
-                        PreparedStatement pst3 = con.prepareStatement("UPDATE `order detail` SET qty=? WHERE ItemCode=?");
-                        pst3.setObject(1,x.getQtyForSell());
-                        pst3.setObject(2,rst.getString(1));
-                        if (pst2.executeUpdate()>0 &&  pst3.executeUpdate()>0){con.commit();new Alert(Alert.AlertType.CONFIRMATION,"Order Modified successfully").show();}
-                        else {new Alert(Alert.AlertType.WARNING,"Try Again..").show();}
+                if (itemDetail.getItemCode().equals(x.getItemCode())){
+                    System.out.println("test");
+                    if(itemDetail.getQtyForSell()>x.getQtyForSell()){
+                        int difference=itemDetail.getQtyForSell()-x.getQtyForSell();
+                        System.out.println("test1");
+                        int updatedValue= itemDAO.search(itemDetail.getItemCode()).getQtyOnHand()+difference;
+                        System.out.println("test2");
+
+                        System.out.println(itemDAO.updateWhenOrderIsBeingUpdating(itemDetail.getItemCode(),updatedValue) );
+                        System.out.println(orderDetailDAO.updateWhenOrderUpdating(itemDetail.getOrderId(),x.getQtyForSell()) );
+
+                        if (itemDAO.updateWhenOrderIsBeingUpdating(itemDetail.getItemCode(),updatedValue) &&
+                                orderDetailDAO.updateWhenOrderUpdating(itemDetail.getOrderId(),x.getQtyForSell())){
+                            con.commit();new Alert(Alert.AlertType.CONFIRMATION,"Order Modified successfully").show();
+                        }
+                        else {new Alert(Alert.AlertType.WARNING,"Try Againhahaha..").show();}
                     }else{
-                        int difference=x.getQtyForSell()-rst.getInt(3);
-                        PreparedStatement pst1 = con.prepareStatement("Select * FROM `item` WHERE ItemCode=?");
-                        pst1.setObject(1,rst.getString(1));
-                        ResultSet rst1 = pst1.executeQuery();rst1.next();
-                        int updatedValue=rst1.getInt(3)-difference;
-                        PreparedStatement pst2 = con.prepareStatement("UPDATE  `item`SET qtyOnHand=? WHERE ItemCode=?");
-                        pst2.setObject(1,updatedValue);
-                        pst2.setObject(2,rst.getString(1));
-                        PreparedStatement pst3 = con.prepareStatement("UPDATE `order detail` SET qty=? WHERE ItemCode =?");
-                        pst3.setObject(1,x.getQtyForSell());
-                        pst3.setObject(2,rst.getString(1));
-                        if (pst2.executeUpdate()>0 &&  pst3.executeUpdate()>0){con.commit();new Alert(Alert.AlertType.CONFIRMATION,"Order Modified successfully").show();}
-                        else {new Alert(Alert.AlertType.WARNING,"Try Again..").show();}
+                        int difference=x.getQtyForSell()-itemDetail.getQtyForSell();
+                        int updatedValue=itemDAO.search(itemDetail.getItemCode()).getQtyOnHand()-difference;
+
+                        System.out.println(itemDAO.updateWhenOrderIsBeingUpdating(itemDetail.getItemCode(),updatedValue) );
+                        System.out.println(orderDetailDAO.updateWhenOrderUpdating(itemDetail.getOrderId(),x.getQtyForSell()) );
+
+                        if (itemDAO.updateWhenOrderIsBeingUpdating(itemDetail.getItemCode(),updatedValue) &&
+                                orderDetailDAO.updateWhenOrderUpdating(itemDetail.getOrderId(),x.getQtyForSell())){
+                            con.commit();new Alert(Alert.AlertType.CONFIRMATION,"Order Modified successfully").show();}
+                        else {new Alert(Alert.AlertType.WARNING,"Try Againlalala..").show();}
                     }
                 }
             }
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+        }  finally {
+            try {
+                con.setAutoCommit(true);
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
         }
-        con.setAutoCommit(true);
         DbConnection.getInstance().getConnection().prepareStatement("DELETE FROM `tempItem`").executeUpdate();
     }
 
@@ -166,25 +152,14 @@ public class OrderDAOImpl implements OrderDAO {
         Connection con = DbConnection.getInstance().getConnection();
         for (CartTm temp:obList1
              ) {
-            PreparedStatement pst = con.prepareStatement("SELECT * FROM `item` WHERE ItemCode=?");
-            pst.setObject(1,temp.getCode());
-            ResultSet rst = pst.executeQuery();
-            rst.next();
-                int newValue=rst.getInt(3)+temp.getQty();
-            PreparedStatement pst1 = con.prepareStatement("UPDATE `item` SET qtyOnHand=? WHERE ItemCode=?");
-            pst1.setObject(1,newValue);
-            pst1.setObject(2,rst.getString(1));
-            if(pst1.executeUpdate()>0){
+            if(itemDAO.updateWhenOrderIsBeingUpdating(temp.getCode(),itemDAO.search(temp.getCode()).getQtyOnHand()+temp.getQty())){
                 System.out.println("Item Updated");
             }
-
         }
-        PreparedStatement pst2 = con.prepareStatement("DELETE FROM `order` WHERE orderId=?");
-        pst2.setObject(1,orderId);
 
         PreparedStatement pst3 = con.prepareStatement("DELETE FROM `order detail` WHERE orderId=?");
         pst3.setObject(1,orderId);
-        if (pst3.executeUpdate()>0 && pst2.executeUpdate()>0 ){
+        if (pst3.executeUpdate()>0 && CrudUtil.executeUpdate("DELETE FROM `order` WHERE orderId=?",orderId)){
             new  Alert (Alert.AlertType.CONFIRMATION,"Order Delete Successfully").show();
         }else{new  Alert (Alert.AlertType.WARNING,"Try again").show();}
     }
