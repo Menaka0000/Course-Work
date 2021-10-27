@@ -8,19 +8,15 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class OrderDetailDAOImpl implements OrderDetailDAO {
-
-
     @Override
     public boolean add(ItemDetails itemDetails) throws SQLException, ClassNotFoundException {
-
-
         if (CrudUtil.executeUpdate("INSERT INTO `Order Detail` VALUES (?,?,?,?)",itemDetails.getItemCode(),itemDetails.getOrderId(),itemDetails.getQtyForSell(),itemDetails.getUnitPrice())){}else{return false;}
         return false;
     }
 
     @Override
     public boolean delete(String id) throws SQLException, ClassNotFoundException {
-        return false;
+        return CrudUtil.executeUpdate("DELETE FROM `order detail` WHERE orderId=?",id);
     }
 
     @Override
@@ -42,8 +38,11 @@ public class OrderDetailDAOImpl implements OrderDetailDAO {
 
     @Override
     public ArrayList<ItemDetails> getAll() throws SQLException, ClassNotFoundException {
-        return null;
+        ArrayList<ItemDetails> itemDetails=new ArrayList<>();
+        ResultSet rst = CrudUtil.executeQuery("SELECT * From `order Detail`");
+        while(rst.next()){
+            itemDetails.add(new ItemDetails(rst.getString(1),rst.getString(2),rst.getInt(3),rst.getInt(4)));
+        }
+        return itemDetails;
     }
-
-
 }

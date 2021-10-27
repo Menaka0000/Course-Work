@@ -20,7 +20,6 @@ import java.sql.SQLException;
 
 public class UpdateItemController {
 
-
     public JFXTextField txtDescription;
     public JFXTextField txtQtyOnHand;
     public JFXTextField txtUnitPrice;

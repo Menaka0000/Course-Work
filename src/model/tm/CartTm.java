@@ -8,11 +8,24 @@ public class CartTm {
     private int qty;
     private double unitPrice;
     private double total;
-    private Button button ;
-    private Button qtyUp ;
-    private Button qtyDown ;
+    private Button button;
+    private Button qtyUp;
+    private Button qtyDown;
+    private int qtyOnHand;
 
     public CartTm() {
+    }
+
+    public CartTm(String code, String description, int qty, double unitPrice, double total, Button button, Button qtyUp, Button qtyDown, int qtyOnHand) {
+        this.code = code;
+        this.description = description;
+        this.qty = qty;
+        this.unitPrice = unitPrice;
+        this.total = total;
+        this.button = button;
+        this.qtyUp = qtyUp;
+        this.qtyDown = qtyDown;
+        this.qtyOnHand = qtyOnHand;
     }
 
     public CartTm(String code, String description, int qty, double unitPrice, double total, Button button, Button qtyUp, Button qtyDown) {
@@ -25,6 +38,10 @@ public class CartTm {
         this.setQtyUp(qtyUp);
         this.setQtyDown(qtyDown);
     }
+
+    public int getQtyOnHand() {return qtyOnHand;}
+
+    public void setQtyOnHand(int qtyOnHand) {this.qtyOnHand = qtyOnHand;}
 
     public String getCode() {
         return code;

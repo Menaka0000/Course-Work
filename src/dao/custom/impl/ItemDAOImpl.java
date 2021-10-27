@@ -2,16 +2,14 @@ package dao.custom.impl;
 
 import dao.CrudUtil;
 import dao.custom.ItemDAO;
-import db.DbConnection;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import model.Item;
 import model.ItemDetails;
-import model.tm.FullDetailedItemTm;
+import model.tm.ItemTm;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -84,7 +82,7 @@ public class ItemDAOImpl implements ItemDAO {
     }
 
     @Override
-    public void deleteItem(FullDetailedItemTm item, ObservableList<FullDetailedItemTm> items) throws SQLException, ClassNotFoundException {
+    public void deleteItem(ItemTm item, ObservableList<ItemTm> items) throws SQLException, ClassNotFoundException {
         Alert alert  = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure,\n you want to Delete ( "+item.getId()+" ) Item" );
         ButtonType yesButtonType = new ButtonType("Yes", ButtonBar.ButtonData.YES);
         ButtonType cancelButtonType = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);

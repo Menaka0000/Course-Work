@@ -5,6 +5,7 @@ import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import util.LoadFxml;
+import util.SetDateAndTime;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -26,12 +27,10 @@ public class ManageOrderController  {
     }
 
     public void logOutOnAction(ActionEvent actionEvent) throws IOException, SQLException, ClassNotFoundException {
-        DbConnection.getInstance().getConnection().prepareStatement("DELETE FROM `tempItem`").executeUpdate();
         LoadFxml.chooseFxml("../view/LoginForm.fxml",actionEvent);
     }
 
-    public void backOnAction(ActionEvent actionEvent) throws IOException, SQLException, ClassNotFoundException {
-        DbConnection.getInstance().getConnection().prepareStatement("DELETE FROM `tempItem`").executeUpdate();
+    public void backOnAction(ActionEvent actionEvent) throws IOException{
         LoadFxml.chooseFxml1("../view/DashBoardForCashier.fxml",actionEvent);
     }
 

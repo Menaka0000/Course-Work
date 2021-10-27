@@ -1,11 +1,13 @@
 package controller;
 
+import bo.custom.PurchaseOrderBO;
+import bo.custom.impl.PurchaseOrderBOImpl;
 import dao.custom.CustomerDAO;
+import dao.custom.OrderDAO;
 import dao.custom.impl.CustomerDAOImpl;
 import dao.custom.ItemDAO;
 import dao.custom.impl.ItemDAOImpl;
 import dao.custom.impl.OrderDAOImpl;
-import db.DbConnection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -16,8 +18,6 @@ import model.Item;
 import model.ItemDetails;
 import model.Order;
 import model.tm.CartTm;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -46,13 +46,14 @@ public class NewOrderController {
     public TableColumn colUpdate1;
     public Label lblOrderId;
     ObservableList<CartTm> obList= FXCollections.observableArrayList();
-    static int variable=0;
 
     /* Property injection has been injected */
-    private final CustomerDAO customerDAO = new CustomerDAOImpl();
-    private final ItemDAO itemDAO = new ItemDAOImpl();
+   /* private final CustomerDAO customerDAO = new CustomerDAOImpl();
+    private final ItemDAO itemDAO = new ItemDAOImpl();*/
+    private final PurchaseOrderBO purchaseOrderBO = new PurchaseOrderBOImpl();
 
     public void initialize()  {
+
         txtDescription.setEditable(false);
         txtUnitPrice.setEditable(false);
         txtQtyOnHand.setEditable(false);
@@ -93,7 +94,7 @@ public class NewOrderController {
         cmbItemId.getSelectionModel().selectedItemProperty().
                 addListener((observable, oldValue, newValue) -> {
                     try {
-                        setItemData(newValue, txtDescription, txtUnitPrice, txtQtyOnHand, cmbItemId);
+                        setItemData(newValue);
                     } catch (SQLException throwables) {
                         throwables.printStackTrace();
                     } catch (ClassNotFoundException e) {
@@ -109,42 +110,12 @@ public class NewOrderController {
     public void logOutOnAction(ActionEvent actionEvent) {
     }
 
-    public void resetItems() throws SQLException, ClassNotFoundException {
-        PreparedStatement pst = DbConnection.getInstance().getConnection().prepareStatement("SELECT * FROM `tempItem`");
-        ResultSet rst=pst.executeQuery();
-
-        while(rst.next()){
-            if(rst.getString(1).equals(cmbItemId.getValue())){
-                System.out.println("test1");
-                PreparedStatement pst1 = DbConnection.getInstance().getConnection().prepareStatement("UPDATE `tempItem` set qtyOnHand=? WHERE ItemCode=?");
-                pst1.setObject(1,txtQtyOnHand.getText());
-                pst1.setObject(2,rst.getString(1));
-                pst1.executeUpdate();
-                return;
-            }
-        }
-        System.out.println("test2");
-        PreparedStatement pst2 = DbConnection.getInstance().getConnection().prepareStatement("INSERT INTO `tempItem` VALUES (?,?,?,?)");
-        pst2.setObject(1,cmbItemId.getValue());
-        pst2.setObject(2,txtDescription.getText());
-        pst2.setObject(3,txtQtyOnHand.getText());
-        pst2.setObject(4,txtUnitPrice.getText());
-        if(pst2.executeUpdate()>0){
-            System.out.println("data inserted successfully");
-        }else{
-            System.out.println("error");
-        }
-
-    }
-
     public void addToCartOnAction(ActionEvent actionEvent) throws SQLException, ClassNotFoundException {
             String description = txtDescription.getText();
-            int qtyOnHand = Integer.parseInt(txtQtyOnHand.getText());
-            double unitPrice = Double.parseDouble(txtUnitPrice.getText());
             int qtyForCustomer = Integer.parseInt(txtOrderQty.getText());
-            double total = qtyForCustomer*unitPrice;
+            double total = Integer.parseInt(txtOrderQty.getText())*Double.parseDouble(txtUnitPrice.getText());
 
-            if (qtyOnHand<qtyForCustomer){
+            if (Integer.parseInt(txtQtyOnHand.getText())<Integer.parseInt(txtOrderQty.getText())){
                 new Alert(Alert.AlertType.WARNING,"Stock Quantity exceeded").show();
                 return;
             }
@@ -155,92 +126,87 @@ public class NewOrderController {
             CartTm tm = new CartTm(
                     cmbItemId.getValue(),
                     description,
-                    qtyForCustomer,
-                    unitPrice,
+                    Integer.parseInt(txtOrderQty.getText()),
+                    Double.parseDouble(txtUnitPrice.getText()),
                     total,
                     btn,
                     qtyUp,
-                    qtyDown
+                    qtyDown,
+                    Integer.parseInt(txtQtyOnHand.getText())
             );
 
-            int rowNumber=isExists(tm);
+            int rowNumber=isExists(tm.getCode());
             if (rowNumber==-1){
                 obList.add(tm);
-                btn.setOnAction((e)->{
-                    obList.remove(tm);
-                    try {
-                        setItemData(tm.getCode(),1,txtDescription,txtUnitPrice,txtQtyOnHand,cmbItemId);
-                        updateTempItemTableOfDb(1,0,tm);
-                    } catch (SQLException throwables) {
-                        throwables.printStackTrace();
-                    } catch (ClassNotFoundException classNotFoundException) {
-                        classNotFoundException.printStackTrace();
-                    }
-                });
-                qtyUp.setOnAction((e)->{
-
-                    tm.setQty(tm.getQty()+2);
-                    tm.setTotal(tm.getTotal()+ tm.getUnitPrice()*2);
-                    calculateCost();
-                    tblCart.refresh();
-                    try {
-                        setItemData(tm.getCode(),1,txtDescription,txtUnitPrice,txtQtyOnHand,cmbItemId);  // x variable just for method overloading
-                        updateTempItemTableOfDb(3,qtyForCustomer,tm);
-                    } catch (SQLException throwables) {
-                        throwables.printStackTrace();
-                    } catch (ClassNotFoundException classNotFoundException) {
-                        classNotFoundException.printStackTrace();
-                    }
-                });
-                qtyDown.setOnAction((e)->{
-                    tm.setQty(tm.getQty()-2);
-                    tm.setTotal(tm.getTotal()-tm.getUnitPrice()*2);
-                    calculateCost();
-                    tblCart.refresh();
-                    try {
-                        setItemData(tm.getCode(),1,txtDescription,txtUnitPrice,txtQtyOnHand,cmbItemId);
-                        updateTempItemTableOfDb(2,0,tm);
-                    } catch (SQLException throwables) {
-                        throwables.printStackTrace();
-                    } catch (ClassNotFoundException classNotFoundException) {
-                        classNotFoundException.printStackTrace();
-                    }
-                });
-                updateTempItemTableOfDb(0,qtyForCustomer,tm);   //Update The item table of DB
-                resetItems();
-
+                tm.setQtyOnHand(tm.getQtyOnHand()-tm.getQty());
+                setItemData(tm);
+                setButtons(tm,tblCart,btn,qtyUp,qtyDown);
             }else{
                 CartTm temp = obList.get(rowNumber);
                 temp.setQty(temp.getQty()+qtyForCustomer);
                 temp.setTotal(temp.getTotal()+total);
-                /*CartTm newTm = new CartTm(
-                        temp.getCode(),
-                        temp.getDescription(),
-                        temp.getQty()+qtyForCustomer,
-                        unitPrice,
-                        total+temp.getTotal(),
-                        btn,
-                        qtyUp,
-                        qtyDown
-                );*/
                 calculateCost();
+                temp.setQtyOnHand(temp.getQtyOnHand()-Integer.parseInt(txtOrderQty.getText()));
                 tblCart.refresh();
-                updateTempItemTableOfDb(0,qtyForCustomer,temp);
-                resetItems();
+                setItemData(temp);
             }
-
             tblCart.setItems(obList);
             calculateCost();
     }
 
-        private int isExists(CartTm tm){
-            for (int i = 0; i < obList.size(); i++) {
-                if (tm.getCode().equals(obList.get(i).getCode())){
-                    return i;
-                }
+    public void setButtons(CartTm tm,TableView tableView,Button btn,Button qtyUp,Button qtyDown){
+        btn.setOnAction((e)->{
+            obList.remove(tm);
+            tm.setQtyOnHand(tm.getQtyOnHand()+tm.getQty());
+            try {
+                setItemData(tm);
+            } catch (SQLException | ClassNotFoundException throwables) {
+                throwables.printStackTrace();
             }
-            return -1;
+        });
+
+        qtyUp.setOnAction((e)->{
+            if(tm.getQtyOnHand()-2<0){
+                new Alert(Alert.AlertType.WARNING,"Item is running out of stock").show();
+                return;
+            }
+            tm.setQty(tm.getQty()+2);
+            tm.setTotal(tm.getTotal()+ tm.getUnitPrice()*2);
+            calculateCost();
+            tblCart.refresh();
+            tm.setQtyOnHand(tm.getQtyOnHand()-2);
+            try {
+                setItemData(tm);
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            } catch (ClassNotFoundException classNotFoundException) {
+                classNotFoundException.printStackTrace();
+            }
+        });
+
+        qtyDown.setOnAction((e)->{
+            tm.setQty(tm.getQty()-2);
+            tm.setTotal(tm.getTotal()-tm.getUnitPrice()*2);
+            calculateCost();
+            tblCart.refresh();
+            tm.setQtyOnHand(tm.getQtyOnHand()+2);
+            try {
+                setItemData(tm);
+            } catch (SQLException | ClassNotFoundException throwables) {
+                throwables.printStackTrace();
+            }
+        });
+    }
+
+    private int isExists(String id){
+        for (int i = 0; i < obList.size(); i++) {
+            if (id.equals(obList.get(i).getCode())){
+                return i;
+            }
         }
+        return -1;
+    }
+
     void calculateCost(){
         double ttl=0;
         for (CartTm tm:obList
@@ -248,31 +214,6 @@ public class NewOrderController {
             ttl+=tm.getTotal();
         }
         lblTtl.setText(ttl+"");
-    }
-
-    //---------------------------------------------------
-    private void updateTempItemTableOfDb(int x, int qtyForCustomer , CartTm object ) throws SQLException, ClassNotFoundException {
-        int newQty=0;
-        if(x==0){
-             newQty=Integer.parseInt(txtQtyOnHand.getText()) - qtyForCustomer;
-        }
-        if(x==1){
-            newQty=Integer.parseInt(txtQtyOnHand.getText())+object.getQty();
-        }
-        if(x==2){
-            newQty=Integer.parseInt(txtQtyOnHand.getText())+2;
-        }
-        if(x==3){
-            newQty=Integer.parseInt(txtQtyOnHand.getText())-2;
-        }
-        PreparedStatement preparedStatement = DbConnection.getInstance().getConnection().prepareStatement("UPDATE `tempItem` set qtyOnHand=? where ItemCode=?");
-        preparedStatement.setObject(1,newQty);
-        preparedStatement.setObject(2,object.getCode());
-        preparedStatement.executeUpdate();
-        System.out.println(newQty);
-        txtQtyOnHand.setText(String.valueOf(newQty));
-        calculateCost();
-
     }
 
     private void loadCustomerIds() throws SQLException, ClassNotFoundException {
@@ -296,57 +237,28 @@ public class NewOrderController {
         }
     }
 
-    public void setItemData(String customerId,TextField txtDescription,TextField txtUnitPrice,TextField txtQtyOnHand,ComboBox<String> cmbItemId) throws SQLException, ClassNotFoundException {
-        PreparedStatement pst = DbConnection.getInstance().getConnection().prepareStatement("SELECT * FROM `tempItem`");
-        ResultSet resultSet = pst.executeQuery();
-        while(resultSet.next()){
-            if(resultSet.getString(1).equals(customerId)){variable=1;break;}
-        }
-        if(variable==0){
-            Item item1 = itemDAO.search(customerId);
-            if (item1 == null) {
-                new Alert(Alert.AlertType.WARNING, "Empty Result Set");
-            } else {
-                txtDescription.setText(item1.getDescription());
-                txtUnitPrice.setText(String.valueOf(item1.getUnitPrice()));
-                txtQtyOnHand.setText(String.valueOf(item1.getQtyOnHand()));
-                cmbItemId.setValue(item1.getCode());
-            }
-        }else {
-            setItemData(customerId,1,txtDescription,txtUnitPrice,txtQtyOnHand,cmbItemId);
-        }
-    }
-
-    private void setItemData(String customerId,int x,TextField txtDescription,TextField txtUnitPrice,TextField txtQtyOnHand,ComboBox<String> cmbItemId) throws SQLException, ClassNotFoundException {
-    // when we try to modify an Order, this method will call from there.
-
-        Item item1 = null;
-        PreparedStatement stm = DbConnection.getInstance()
-                .getConnection().prepareStatement("SELECT * FROM `tempItem` WHERE ItemCode=?");
-        stm.setObject(1, customerId);
-        ResultSet rst = stm.executeQuery();
-        if (rst.next()) {
-            item1= new Item(
-                    rst.getString(1),
-                    rst.getString(2),
-                    rst.getInt(3),
-                    rst.getInt(4)
-            );
-
-        } else {
-            System.out.println("Empty Result Set");
-        }
-        //--------------------------------
-
-        if (item1 == null) {
-            new Alert(Alert.AlertType.WARNING, "Empty Result Set 1");
-        } else {
-            System.out.println(item1.getQtyOnHand());
-            txtDescription.setText(item1.getDescription());
-            txtUnitPrice.setText(String.valueOf(item1.getUnitPrice()));
+    public void setItemData(String id) throws SQLException, ClassNotFoundException {
+        Item item1 = itemDAO.search(id);
+        txtDescription.setText(item1.getDescription());
+        txtUnitPrice.setText(String.valueOf(item1.getUnitPrice()));
+        cmbItemId.setValue(item1.getCode());
+        if (isExists(id)==-1){
             txtQtyOnHand.setText(String.valueOf(item1.getQtyOnHand()));
-            cmbItemId.setValue(item1.getCode());
+        }else {
+            for (CartTm temp:obList){
+                if (temp.getCode().equals(id)){
+                    txtQtyOnHand.setText(String.valueOf(temp.getQtyOnHand()));
+                    break;
+                }
+            }
         }
+      }
+
+    private void setItemData(CartTm cartTm) throws SQLException, ClassNotFoundException {
+            txtDescription.setText(cartTm.getDescription());
+            txtUnitPrice.setText(String.valueOf(cartTm.getUnitPrice()));
+            txtQtyOnHand.setText(String.valueOf(cartTm.getQtyOnHand()));
+            cmbItemId.setValue(cartTm.getCode());
     }
 
     public void placeOrderOnAction(ActionEvent actionEvent) throws SQLException, ClassNotFoundException {
@@ -369,10 +281,9 @@ public class NewOrderController {
                 total,
                 items
         );
-        if (new OrderDAOImpl().add(order)){
-            DbConnection.getInstance().getConnection().prepareStatement("DELETE FROM `tempItem`").executeUpdate();
+        if (purchaseOrderBO.purchaseOrder(order)){
             tblCart.getItems().clear();
-            lblOrderId.setText(new OrderDAOImpl().getOrderId());
+            lblOrderId.setText(new OrderDAOImpl().getOrderId());                                      //you have to fix this...
             new Alert(Alert.AlertType.CONFIRMATION,"Order Placed..").show();
         }else{
             new Alert(Alert.AlertType.WARNING,"Try Again..").show();
@@ -380,8 +291,7 @@ public class NewOrderController {
     }
 
     public void cancelOnAction(ActionEvent actionEvent) throws SQLException, ClassNotFoundException {
-        DbConnection.getInstance().getConnection().prepareStatement("DELETE FROM `tempItem`").executeUpdate();
         tblCart.getItems().clear();
-        setItemData(cmbItemId.getValue(),txtDescription, txtUnitPrice, txtQtyOnHand, cmbItemId);
+        setItemData(cmbItemId.getValue());
     }
 }

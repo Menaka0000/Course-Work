@@ -9,20 +9,19 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import model.tm.FullDetailedItemTm;
-
+import model.tm.ItemTm;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class DeleteItemController {
-    public TableView<FullDetailedItemTm> tblItem;
+    public TableView<ItemTm> tblItem;
     public TableColumn colCode;
     public TableColumn colDescription;
     public TableColumn colQtyOnHand;
     public TableColumn colUnitPrice;
-    ObservableList<FullDetailedItemTm> items= FXCollections.observableArrayList();
-    FullDetailedItemTm x=null;
+    ObservableList<ItemTm> items= FXCollections.observableArrayList();
+    ItemTm x=null;
 
 
     public void initialize(){
@@ -61,7 +60,7 @@ public class DeleteItemController {
         PreparedStatement pst = DbConnection.getInstance().getConnection().prepareStatement("SELECT  * FROM `item`");
         ResultSet rst = pst.executeQuery();
         while(rst.next()){
-           FullDetailedItemTm x= new FullDetailedItemTm(rst.getString(1),rst.getString(2),rst.getInt(3),rst.getDouble(4));
+           ItemTm x= new ItemTm(rst.getString(1),rst.getString(2),rst.getInt(3),rst.getDouble(4));
             items.add(x);
         }
         tblItem.setItems(items);

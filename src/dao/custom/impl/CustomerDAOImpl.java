@@ -33,6 +33,12 @@ public class CustomerDAOImpl implements CustomerDAO {
         }
         return ids;
     }
+
+    @Override
+    public ResultSet searchByName(String name) throws SQLException, ClassNotFoundException {
+        return CrudUtil.executeQuery("SELECT * FROM `customer` WHERE CustName=?",name);
+    }
+
     @Override
     public Customer search(String id) throws SQLException, ClassNotFoundException {
         ResultSet rst = CrudUtil.executeQuery("SELECT * FROM Customer WHERE CustId=?",id);
