@@ -7,14 +7,17 @@ import dao.custom.OrderDetailDAO;
 import db.DbConnection;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
-import model.ItemDetails;
-import model.Order;
-import model.tm.CartTm;
+import dto.ItemDetails;
+import dto.OrderDTO;
+import dto.tm.CartTm;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
 public class OrderDAOImpl implements OrderDAO {
+
+    /* Property injection has been injected */
     private final ItemDAO itemDAO = new ItemDAOImpl();
     private final OrderDetailDAO orderDetailDAO = new OrderDetailDAOImpl();
 
@@ -30,64 +33,78 @@ public class OrderDAOImpl implements OrderDAO {
         }else{return "O-001";}
     }
 
-
     @Override
-    public boolean add(Order order) throws SQLException, ClassNotFoundException {
-       return CrudUtil.executeUpdate("INSERT INTO `Order` VALUES (?,?,?,?,?)", order.getOrderId(), order.getCustomerId()
-                , order.getOrderDate(), order.getOrderTime(), order.getCost());
+    public boolean add(OrderDTO orderDTO) throws SQLException, ClassNotFoundException {
+       return CrudUtil.executeUpdate("INSERT INTO `Order` VALUES (?,?,?,?,?)", orderDTO.getOrderId(), orderDTO.getCustomerId()
+                , orderDTO.getOrderDate(), orderDTO.getOrderTime(), orderDTO.getCost());
     }
 
     @Override
-    public  boolean saveOrderDetail(Order order) throws SQLException, ClassNotFoundException {
-        for (ItemDetails temp :order.getItems()
+    public  boolean saveOrderDetail(OrderDTO orderDTO) throws SQLException, ClassNotFoundException {
+        for (ItemDetails temp : orderDTO.getItems()
         ) {
-            orderDetailDAO.add(temp);
+            System.out.println("test2222");
+            if (!orderDetailDAO.add(temp)){return false;}
+            System.out.println("test3333");
         }
         return true;
     }
 
     @Override
-    public boolean updateItemTable(Order order) throws SQLException, ClassNotFoundException {
-        for (ItemDetails temp:order.getItems()
+    public boolean updateItemTable(OrderDTO orderDTO) throws SQLException, ClassNotFoundException {
+        for (ItemDetails temp: orderDTO.getItems()
              ) {
-                 return itemDAO.updateWhenOrderIsPurchasing(temp);
-        }return true;
+                 if (!itemDAO.updateWhenOrderIsPurchasing(temp)){return false;}
+        }
+        return true;
     }
 
     @Override
-    public boolean update(Order order) throws SQLException, ClassNotFoundException {
-        if (CrudUtil.executeUpdate("UPDATE `order` SET cost=? WHERE orderId=?",order.getCost(),order.getOrderId())){
-            modifyOrderDetail(order.getOrderId(),order.getItems());
+    public boolean update(OrderDTO orderDTO) throws SQLException, ClassNotFoundException {
+        if (CrudUtil.executeUpdate("UPDATE `order` SET cost=? WHERE orderId=?", orderDTO.getCost(), orderDTO.getOrderId())){
+            modifyOrderDetail(orderDTO.getOrderId(), orderDTO.getItems());
             return true;
         }
         return false;
     }
 
-
     @Override
-    public void modifyOrderDetail(String orderId,ArrayList<ItemDetails> items) throws SQLException, ClassNotFoundException {
+    public boolean modifyOrderDetail(String orderId,ArrayList<ItemDetails> items) throws SQLException, ClassNotFoundException {
         Connection con = DbConnection.getInstance().getConnection();
         con.setAutoCommit(false);
         try {
-            ItemDetails itemDetail = orderDetailDAO.search(orderId);
             for (ItemDetails x:items
             ) {
-                if (itemDetail.getItemCode().equals(x.getItemCode())){
-                    if(itemDetail.getQtyForSell()>x.getQtyForSell()){
-                        int difference=itemDetail.getQtyForSell()-x.getQtyForSell();
-                        int updatedValue= itemDAO.search(itemDetail.getItemCode()).getQtyOnHand()+difference;
-                        if (itemDAO.updateWhenOrderIsBeingUpdating(itemDetail.getItemCode(),updatedValue) &&
-                                orderDetailDAO.updateWhenOrderUpdating(itemDetail.getOrderId(),x.getQtyForSell())){
-                            con.commit();new Alert(Alert.AlertType.CONFIRMATION,"Order Modified successfully").show();
-                        }
-                        else {new Alert(Alert.AlertType.WARNING,"Try Again..").show();}
-                    }else{
-                        int difference=x.getQtyForSell()-itemDetail.getQtyForSell();
-                        int updatedValue=itemDAO.search(itemDetail.getItemCode()).getQtyOnHand()-difference;
-                        if (itemDAO.updateWhenOrderIsBeingUpdating(itemDetail.getItemCode(),updatedValue) &&
-                                orderDetailDAO.updateWhenOrderUpdating(itemDetail.getOrderId(),x.getQtyForSell())){
-                            con.commit();new Alert(Alert.AlertType.CONFIRMATION,"Order Modified successfully").show();}
-                        else {new Alert(Alert.AlertType.WARNING,"Try Again..").show();}
+                if (x.getUpdateStatus()==0) {
+                    ItemDetails search = orderDetailDAO.searchByItemId(x.getItemCode(),x.getOrderId());
+                    int difference = x.getQtyForSell()-search.getQtyForSell();
+                    System.out.println("qtyforsale "+x.getQtyForSell()+" previ "+search.getQtyForSell());
+                    System.out.println(difference);
+                    int updatedValue = itemDAO.search(search.getItemCode()).getQtyOnHand() + (-difference);
+                    System.out.println(updatedValue);
+                    if (itemDAO.updateWhenOrderIsBeingUpdating(search.getItemCode(), updatedValue) && orderDetailDAO.updateWhenOrderUpdating(search.getOrderId(),search.getItemCode(), x.getQtyForSell())) {
+                        con.commit();
+                    } else {
+                        con.rollback();
+                        return false;
+                    }
+                        /*else {
+                            int difference = x.getQtyForSell() - search.getQtyForSell();
+                            int updatedValue = itemDAO.search(search.getItemCode()).getQtyOnHand() - difference;
+                            if (itemDAO.updateWhenOrderIsBeingUpdating(search.getItemCode(), updatedValue) &&
+                                    orderDetailDAO.updateWhenOrderUpdating(search.getOrderId(), x.getQtyForSell())) {
+                                con.commit();
+                            } else {
+                                con.rollback();
+                                return false;
+                            }
+                        }*/
+                }else {
+                    if (orderDetailDAO.add(x) && itemDAO.updateWhenOrderIsBeingUpdating(x.getItemCode(),itemDAO.search(x.getItemCode()).getQtyOnHand()- x.getQtyForSell())){
+                        con.commit();
+                    }else {
+                        con.rollback();
+                        return false;
                     }
                 }
             }
@@ -99,19 +116,19 @@ public class OrderDAOImpl implements OrderDAO {
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
             }
-        }
+        }return true;
     }
 
     @Override
     public void deleteOrder(ObservableList<CartTm> obList1,String orderId) throws SQLException, ClassNotFoundException {
-        Connection con = DbConnection.getInstance().getConnection();
         for (CartTm temp:obList1
              ) {
-            if(itemDAO.updateWhenOrderIsBeingUpdating(temp.getCode(),itemDAO.search(temp.getCode()).getQtyOnHand()+temp.getQty())){
-                System.out.println("Item Updated");
+            int updatedValue=(itemDAO.search(temp.getCode()).getQtyOnHand()+temp.getQty());
+            if(itemDAO.updateWhenOrderIsBeingUpdating(temp.getCode(),updatedValue)){
+                System.out.println("Item Updated when order was being deleting");
             }
         }
-        if (orderDetailDAO.delete(orderId) && CrudUtil.executeUpdate("DELETE FROM `order` WHERE orderId=?",orderId)){
+        if (CrudUtil.executeUpdate("DELETE FROM `order` WHERE orderId=?",orderId)){
             new  Alert (Alert.AlertType.CONFIRMATION,"Order Delete Successfully").show();
         }else{new  Alert (Alert.AlertType.WARNING,"Try again").show();}
     }
@@ -123,14 +140,14 @@ public class OrderDAOImpl implements OrderDAO {
 
     @Override
     public boolean delete(String s) throws SQLException, ClassNotFoundException {
-        return false;
+        throw new UnsupportedOperationException("This method has not been implemented");
     }
     @Override
-    public Order search(String s) throws SQLException, ClassNotFoundException {
-        return null;
+    public OrderDTO search(String s) throws SQLException, ClassNotFoundException {
+        throw new UnsupportedOperationException("This method has not been implemented");
     }
     @Override
-    public ArrayList<Order> getAll() throws SQLException, ClassNotFoundException {
-        return null;
+    public ArrayList<OrderDTO> getAll() throws SQLException, ClassNotFoundException {
+        throw new UnsupportedOperationException("This method has not been implemented");
     }
 }

@@ -1,4 +1,4 @@
-package model.tm;
+package dto.tm;
 
 import javafx.scene.control.Button;
 
@@ -12,6 +12,20 @@ public class CartTm {
     private Button qtyUp;
     private Button qtyDown;
     private int qtyOnHand;
+    private int status;
+
+    public CartTm(String code, String description, int qty, double unitPrice, double total, Button button, Button qtyUp, Button qtyDown, int qtyOnHand, int status) {
+        this.code = code;
+        this.description = description;
+        this.qty = qty;
+        this.unitPrice = unitPrice;
+        this.total = total;
+        this.button = button;
+        this.qtyUp = qtyUp;
+        this.qtyDown = qtyDown;
+        this.qtyOnHand = qtyOnHand;
+        this.status = status;
+    }
 
     public CartTm() {
     }
@@ -105,6 +119,14 @@ public class CartTm {
 
     public void setQtyDown(Button qtyDown) {
         this.qtyDown = qtyDown;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public int getStatus() {
+        return status;
     }
 
     @Override

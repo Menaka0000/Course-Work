@@ -42,11 +42,7 @@ public class DashBoardForCashierController  {
         stage.show();
     }
 
-
     public void exitOnAction(ActionEvent actionEvent) {
         LoadFxml.exit(actionEvent);
     }
-//------------------------------------------------
-
-
 }

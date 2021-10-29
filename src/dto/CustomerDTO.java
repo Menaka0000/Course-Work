@@ -1,17 +1,17 @@
-package model;
+package dto;
 
-public class Customer {
+public class CustomerDTO {
   private String id;
   private String name;
   private String address;
   private String city;
 
-    public Customer() {
+    public CustomerDTO() {
     }
 
     private String province;
 
-    public Customer(String id, String name, String address, String city, String province, String postalCode) {
+    public CustomerDTO(String id, String name, String address, String city, String province, String postalCode) {
         this.id = id;
         this.name = name;
         this.address = address;

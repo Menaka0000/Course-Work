@@ -1,4 +1,4 @@
-package model.tm;
+package dto.tm;
 
 public class ItemTm {
     private String id;

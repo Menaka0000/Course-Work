@@ -22,14 +22,12 @@ public class LoginFormController extends TitleBarController {
     public JFXTextField txtPassword;
     public Pane pane;
     public JFXButton btnmini;
-    public JFXButton btnfull;
 
     public void signUpOnAction(ActionEvent actionEvent) throws IOException {
         LoadFxml.chooseFxml1("../view/SignUp.fxml",actionEvent);
     }
 
     public void signInOnAction(ActionEvent actionEvent) throws IOException, SQLException, ClassNotFoundException {
-
         PreparedStatement preparedStatement = DbConnection.getInstance().getConnection().prepareStatement("SELECT * FROM `user` WHERE user_name=?");
         preparedStatement.setObject(1,txtUserName.getText());
         ResultSet rst = preparedStatement.executeQuery();

@@ -33,6 +33,4 @@ public class DashBordForAdminController {
     public void exitOnAction(ActionEvent actionEvent) {
         LoadFxml.exit(actionEvent);
     }
-
-
 }

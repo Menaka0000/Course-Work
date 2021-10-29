@@ -1,7 +1,8 @@
 package controller;
 
-import dao.custom.impl.ItemDAOImpl;
-import db.DbConnection;
+import bo.BoFactory;
+import bo.custom.ItemBO;
+import bo.custom.ItemDeleteBO;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -9,10 +10,10 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import model.tm.ItemTm;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import dto.ItemDTO;
+import dto.tm.ItemTm;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class DeleteItemController {
     public TableView<ItemTm> tblItem;
@@ -23,6 +24,9 @@ public class DeleteItemController {
     ObservableList<ItemTm> items= FXCollections.observableArrayList();
     ItemTm x=null;
 
+    /*Property injection has been injected*/
+    private final ItemDeleteBO itemDelete = (ItemDeleteBO) BoFactory.getBoFactory().getBO(BoFactory.BoTypes.ITEM_DELETE);
+    private final ItemBO itemBO= (ItemBO) BoFactory.getBoFactory().getBO(BoFactory.BoTypes.ITEM);
 
     public void initialize(){
         try {
@@ -47,21 +51,19 @@ public class DeleteItemController {
                 });
     }
 
-    public void deleteOnAction(ActionEvent actionEvent) throws SQLException, ClassNotFoundException {
+    public void deleteOnAction(ActionEvent actionEvent){
         try{
-            new ItemDAOImpl().deleteItem(x,items);
+            itemDelete.deleteItem(x,items);
             tblItem.refresh();
-        }catch (NullPointerException e){
+        }catch (NullPointerException | SQLException | ClassNotFoundException e){
             new Alert(Alert.AlertType.WARNING,"Please select a item from `Item` table..").show();
         }
     }
 
     public void loadPreValues() throws SQLException, ClassNotFoundException {
-        PreparedStatement pst = DbConnection.getInstance().getConnection().prepareStatement("SELECT  * FROM `item`");
-        ResultSet rst = pst.executeQuery();
-        while(rst.next()){
-           ItemTm x= new ItemTm(rst.getString(1),rst.getString(2),rst.getInt(3),rst.getDouble(4));
-            items.add(x);
+        ArrayList<ItemDTO> allItemDTOS =  itemBO.getAllItems();
+        for (ItemDTO a : allItemDTOS) {
+            items.add(new ItemTm(a.getCode(),a.getDescription(),a.getQtyOnHand(),a.getUnitPrice()));
         }
         tblItem.setItems(items);
     }

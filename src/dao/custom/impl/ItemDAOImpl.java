@@ -6,9 +6,9 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
-import model.Item;
-import model.ItemDetails;
-import model.tm.ItemTm;
+import dto.ItemDTO;
+import dto.ItemDetails;
+import dto.tm.ItemTm;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,11 +17,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class ItemDAOImpl implements ItemDAO {
-
-
-
     @Override
-    public boolean add(Item i) throws SQLException, ClassNotFoundException {
+    public boolean add(ItemDTO i) throws SQLException, ClassNotFoundException {
         ResultSet rst = CrudUtil.executeQuery("SELECT * FROM `Item`");
         while(rst.next()){
             if(rst.getString(1).equals(i.getCode())){
@@ -45,10 +42,10 @@ public class ItemDAOImpl implements ItemDAO {
     }
 
     @Override
-    public Item search(String id) throws SQLException, ClassNotFoundException {
+    public ItemDTO search(String id) throws SQLException, ClassNotFoundException {
         ResultSet rst =  CrudUtil.executeQuery("SELECT * FROM `item` WHERE ItemCode=?",id);
         if (rst.next()) {
-            return new Item(
+            return new ItemDTO(
                     rst.getString(1),
                     rst.getString(2),
                     rst.getInt(3),
@@ -61,10 +58,10 @@ public class ItemDAOImpl implements ItemDAO {
     }
 
     @Override
-    public boolean update(Item item) throws SQLException, ClassNotFoundException {
+    public boolean update(ItemDTO itemDTO) throws SQLException, ClassNotFoundException {
         if (CrudUtil.executeUpdate("UPDATE `item` SET Description=?,qtyOnHand=?,unitPrice=? WHERE ItemCode=?",
-                item.getDescription(),item.getQtyOnHand(),item.getUnitPrice(),item.getCode())){
-            new Alert (Alert.AlertType.CONFIRMATION,item.getCode()+" Item was Updated Successfully").show();
+                itemDTO.getDescription(), itemDTO.getQtyOnHand(), itemDTO.getUnitPrice(), itemDTO.getCode())){
+            new Alert (Alert.AlertType.CONFIRMATION, itemDTO.getCode()+" Item was Updated Successfully").show();
             return true;
         }else {new Alert (Alert.AlertType.WARNING," Try Again").show();}
         return false;
@@ -100,7 +97,12 @@ public class ItemDAOImpl implements ItemDAO {
     }
 
     @Override
-    public ArrayList<Item> getAll() throws SQLException, ClassNotFoundException {
-        return null;
+    public ArrayList<ItemDTO> getAll() throws SQLException, ClassNotFoundException {
+        ArrayList<ItemDTO> allItemDTOS =new ArrayList<>();
+        ResultSet rst =  CrudUtil.executeQuery("SELECT * FROM `Item`");
+        while (rst.next()) {
+            allItemDTOS.add(new ItemDTO(rst.getString(1),rst.getString(2),rst.getInt(3),rst.getInt(4)));
+        }
+        return allItemDTOS;
     }
 }

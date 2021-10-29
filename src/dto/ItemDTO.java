@@ -1,17 +1,17 @@
-package model;
+package dto;
 
 import java.util.Objects;
 
-public class Item {
+public class ItemDTO {
     private String code;
     private String description;
     private int qtyOnHand;
     private int unitPrice;
 
-    public Item() {
+    public ItemDTO() {
     }
 
-    public Item(String code, String description, int qtyOnHand, int unitPrice) {
+    public ItemDTO(String code, String description, int qtyOnHand, int unitPrice) {
         this.code = code;
         this.description = description;
         this.qtyOnHand = qtyOnHand;
@@ -64,8 +64,8 @@ public class Item {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Item item = (Item) o;
-        return Objects.equals(code, item.code);
+        ItemDTO itemDTO = (ItemDTO) o;
+        return Objects.equals(code, itemDTO.code);
     }
 
     @Override

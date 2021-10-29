@@ -1,11 +1,10 @@
-package model;
+package dto;
 
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextField;
 
 import java.util.ArrayList;
 
-public class Order {
+public class OrderDTO {
     private String orderId;
     private String customerId;
     private String orderDate;
@@ -15,17 +14,17 @@ public class Order {
     private ArrayList<ItemDetails> items;
     private ComboBox<String> cmbOrderIds;
 
-    public Order(String orderId, double cost, ArrayList<ItemDetails> items,  ComboBox<String> cmbOrderIds) {
+    public OrderDTO(String orderId, double cost, ArrayList<ItemDetails> items, ComboBox<String> cmbOrderIds) {
         this.orderId = orderId;
         this.cost = cost;
         this.items = items;
         this.cmbOrderIds = cmbOrderIds;
     }
 
-    public Order() {
+    public OrderDTO() {
     }
 
-    public Order(String orderId, String customerId, String orderDate, String orderTime, double cost, ArrayList<ItemDetails> items) {
+    public OrderDTO(String orderId, String customerId, String orderDate, String orderTime, double cost, ArrayList<ItemDetails> items) {
         this.orderId = orderId;
         this.customerId = customerId;
         this.orderDate = orderDate;

@@ -2,7 +2,7 @@ package dao.custom.impl;
 
 import dao.CrudUtil;
 import dao.custom.CustomerDAO;
-import model.Customer;
+import dto.CustomerDTO;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import java.util.List;
 
 public class CustomerDAOImpl implements CustomerDAO {
     @Override
-    public boolean add(Customer c) throws SQLException, ClassNotFoundException {
+    public boolean add(CustomerDTO c) throws SQLException, ClassNotFoundException {
         ResultSet rst = CrudUtil.executeQuery("SELECT * FROM `customer`");
         while(rst.next()){
             if(rst.getString(1).equals(c.getId())){
@@ -21,15 +21,12 @@ public class CustomerDAOImpl implements CustomerDAO {
                 c.getAddress(),c.getCity(),c.getProvince(),c.getPostalCode());
     }
 
-
     @Override
     public List<String> getCustomerIds() throws SQLException, ClassNotFoundException {
         ResultSet rst=CrudUtil.executeQuery("SELECT * FROM `customer`");
         List<String> ids = new ArrayList<>();
         while (rst.next()){
-            ids.add(
-                    rst.getString(1)
-            );
+            ids.add(rst.getString(1));
         }
         return ids;
     }
@@ -40,10 +37,10 @@ public class CustomerDAOImpl implements CustomerDAO {
     }
 
     @Override
-    public Customer search(String id) throws SQLException, ClassNotFoundException {
+    public CustomerDTO search(String id) throws SQLException, ClassNotFoundException {
         ResultSet rst = CrudUtil.executeQuery("SELECT * FROM Customer WHERE CustId=?",id);
         if (rst.next()) {
-            return new Customer(
+            return new CustomerDTO(
                     rst.getString(1),
                     rst.getString(2),
                     rst.getString(3),
@@ -57,17 +54,17 @@ public class CustomerDAOImpl implements CustomerDAO {
     }
 
     @Override
-    public ArrayList<Customer> getAll() throws SQLException, ClassNotFoundException {
-        return null;
+    public ArrayList<CustomerDTO> getAll() throws SQLException, ClassNotFoundException {
+        throw new UnsupportedOperationException("This method has not been implemented");
     }
     @Override
     public boolean delete(String s) throws SQLException, ClassNotFoundException {
-        return false;
+        throw new UnsupportedOperationException("This method has not been implemented");
     }
 
     @Override
-    public boolean update(Customer customer) throws SQLException, ClassNotFoundException {
-        return false;
+    public boolean update(CustomerDTO customerDTO) throws SQLException, ClassNotFoundException {
+        throw new UnsupportedOperationException("This method has not been implemented");
     }
 
 

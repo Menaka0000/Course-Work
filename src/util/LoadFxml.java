@@ -46,13 +46,6 @@ public class LoadFxml {
         alert.getButtonTypes().setAll(cancelButtonType, yesButtonType );
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == yesButtonType) {
-            try {
-                DbConnection.getInstance().getConnection().prepareStatement("DELETE FROM `tempItem`").executeUpdate();
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
             System.exit(0);
         }
     }

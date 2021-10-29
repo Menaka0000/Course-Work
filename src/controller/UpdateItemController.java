@@ -1,8 +1,9 @@
 package controller;
 
+import bo.BoFactory;
+import bo.custom.UpdateItemBO;
 import com.jfoenix.controls.JFXTextField;
 import dao.custom.impl.ItemDAOImpl;
-import db.DbConnection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -11,12 +12,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import model.Item;
-import model.tm.ItemTm;
+import dto.ItemDTO;
+import dto.tm.ItemTm;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class UpdateItemController {
 
@@ -31,6 +31,9 @@ public class UpdateItemController {
     public TableColumn colCode;
     public TableColumn colDescription;
     ObservableList<ItemTm> items= FXCollections.observableArrayList();
+
+    /*property injection has been injected*/
+    private final UpdateItemBO updateItemBO = (UpdateItemBO) BoFactory.getBoFactory().getBO(BoFactory.BoTypes.UPDATE_ITEM);
 
     public void initialize(){
         try {
@@ -64,30 +67,29 @@ public class UpdateItemController {
         if (lblPreId.getText().equals("") ){new Alert(Alert.AlertType.WARNING,"Please select a row from `Item` table..").show();}
         else {
             if (txtDescription.getText().equals("")){new Alert(Alert.AlertType.WARNING,"Some fields may be empty..").show();}
-            else{   new ItemDAOImpl().update(new Item(lblPreId.getText(),txtDescription.getText(),Integer.parseInt(txtQtyOnHand.getText())
+            else{   new ItemDAOImpl().update(new ItemDTO(lblPreId.getText(),txtDescription.getText(),Integer.parseInt(txtQtyOnHand.getText())
                     ,Integer.parseInt(txtUnitPrice.getText())));
+                txtQtyOnHand.clear();
+                txtUnitPrice.clear();
+                lblPreUnitPrice.setText("--");
+                lblPreQtyOnHand.setText("--");
             }
         }
     }
 
     public void loadPreValues() throws SQLException, ClassNotFoundException {
-        PreparedStatement pst = DbConnection.getInstance().getConnection().prepareStatement("SELECT  * FROM `item`");
-        ResultSet rst = pst.executeQuery();
-        while(rst.next()){
-            ItemTm x= new ItemTm(rst.getString(1),rst.getString(2));
-            items.add(x);
+        ArrayList<ItemDTO> allItemDTOS = updateItemBO.getAllItems();
+        for (ItemDTO allItemDTO : allItemDTOS) {
+            items.add(new ItemTm(allItemDTO.getCode(), allItemDTO.getDescription()));
         }
         tblItem.setItems(items);
     }
 
     public void setPreValues(ItemTm x) throws SQLException, ClassNotFoundException {
-        PreparedStatement pst = DbConnection.getInstance().getConnection().prepareStatement("SELECT * FROM `item` WHERE ItemCode=?");
-        pst.setObject(1,x.getId());
-        ResultSet rst = pst.executeQuery();
-        rst.next();
-        lblPreId.setText(rst.getString(1));
-        lblPreDes.setText(rst.getString(2));
-        lblPreQtyOnHand.setText(rst.getString(3));
-        lblPreUnitPrice.setText(rst.getString(4));
+        lblPreId.setText(updateItemBO.searchForItem(x.getId()).getCode());
+        lblPreDes.setText(updateItemBO.searchForItem(x.getId()).getDescription());
+        lblPreQtyOnHand.setText(String.valueOf(updateItemBO.searchForItem(x.getId()).getQtyOnHand()));
+        lblPreUnitPrice.setText(String.valueOf(updateItemBO.searchForItem(x.getId()).getUnitPrice()));
+        txtDescription.setText(updateItemBO.searchForItem(x.getId()).getDescription());
     }
 }

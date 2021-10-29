@@ -1,23 +1,20 @@
 package controller;
 
+import bo.BoFactory;
+import bo.custom.CustomerBO;
+import bo.custom.ItemBO;
 import bo.custom.PurchaseOrderBO;
-import bo.custom.impl.PurchaseOrderBOImpl;
-import dao.custom.CustomerDAO;
-import dao.custom.OrderDAO;
-import dao.custom.impl.CustomerDAOImpl;
-import dao.custom.ItemDAO;
-import dao.custom.impl.ItemDAOImpl;
 import dao.custom.impl.OrderDAOImpl;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import model.Customer;
-import model.Item;
-import model.ItemDetails;
-import model.Order;
-import model.tm.CartTm;
+import dto.CustomerDTO;
+import dto.ItemDTO;
+import dto.ItemDetails;
+import dto.OrderDTO;
+import dto.tm.CartTm;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -48,9 +45,9 @@ public class NewOrderController {
     ObservableList<CartTm> obList= FXCollections.observableArrayList();
 
     /* Property injection has been injected */
-   /* private final CustomerDAO customerDAO = new CustomerDAOImpl();
-    private final ItemDAO itemDAO = new ItemDAOImpl();*/
-    private final PurchaseOrderBO purchaseOrderBO = new PurchaseOrderBOImpl();
+    private final PurchaseOrderBO purchaseOrderBO = (PurchaseOrderBO) BoFactory.getBoFactory().getBO(BoFactory.BoTypes.PURCHASE_ORDER);
+    private final CustomerBO customerBO = (CustomerBO) BoFactory.getBoFactory().getBO(BoFactory.BoTypes.CUSTOMER);
+    private final ItemBO itemBO = (ItemBO) BoFactory.getBoFactory().getBO(BoFactory.BoTypes.ITEM);
 
     public void initialize()  {
 
@@ -112,7 +109,6 @@ public class NewOrderController {
 
     public void addToCartOnAction(ActionEvent actionEvent) throws SQLException, ClassNotFoundException {
             String description = txtDescription.getText();
-            int qtyForCustomer = Integer.parseInt(txtOrderQty.getText());
             double total = Integer.parseInt(txtOrderQty.getText())*Double.parseDouble(txtUnitPrice.getText());
 
             if (Integer.parseInt(txtQtyOnHand.getText())<Integer.parseInt(txtOrderQty.getText())){
@@ -124,15 +120,8 @@ public class NewOrderController {
             Button qtyDown=new Button("-");
 
             CartTm tm = new CartTm(
-                    cmbItemId.getValue(),
-                    description,
-                    Integer.parseInt(txtOrderQty.getText()),
-                    Double.parseDouble(txtUnitPrice.getText()),
-                    total,
-                    btn,
-                    qtyUp,
-                    qtyDown,
-                    Integer.parseInt(txtQtyOnHand.getText())
+                    cmbItemId.getValue(), description, Integer.parseInt(txtOrderQty.getText()), Double.parseDouble(txtUnitPrice.getText()), total,
+                    btn, qtyUp, qtyDown, Integer.parseInt(txtQtyOnHand.getText())
             );
 
             int rowNumber=isExists(tm.getCode());
@@ -142,16 +131,20 @@ public class NewOrderController {
                 setItemData(tm);
                 setButtons(tm,tblCart,btn,qtyUp,qtyDown);
             }else{
-                CartTm temp = obList.get(rowNumber);
-                temp.setQty(temp.getQty()+qtyForCustomer);
-                temp.setTotal(temp.getTotal()+total);
-                calculateCost();
-                temp.setQtyOnHand(temp.getQtyOnHand()-Integer.parseInt(txtOrderQty.getText()));
-                tblCart.refresh();
-                setItemData(temp);
+            addItemIsNotExists(rowNumber,Integer.parseInt(txtOrderQty.getText()),total);
             }
             tblCart.setItems(obList);
             calculateCost();
+    }
+
+    public void addItemIsNotExists(int rowNumber,int qtyForCustomer,double total) throws SQLException, ClassNotFoundException {
+        CartTm temp = obList.get(rowNumber);
+        temp.setQty(temp.getQty()+qtyForCustomer);
+        temp.setTotal(temp.getTotal()+total);
+        calculateCost();
+        temp.setQtyOnHand(temp.getQtyOnHand()-Integer.parseInt(txtOrderQty.getText()));
+        tblCart.refresh();
+        setItemData(temp);
     }
 
     public void setButtons(CartTm tm,TableView tableView,Button btn,Button qtyUp,Button qtyDown){
@@ -217,17 +210,17 @@ public class NewOrderController {
     }
 
     private void loadCustomerIds() throws SQLException, ClassNotFoundException {
-        List<String> customerIds = customerDAO.getCustomerIds();
+        List<String> customerIds = customerBO.getCustomerIds();
         cmbCustId.getItems().addAll(customerIds);
     }
 
     public void loadItemIds(ComboBox<String> cmbItemId) throws SQLException, ClassNotFoundException {
-        List<String> ItemIds = itemDAO.getItemIds();
+        List<String> ItemIds = itemBO.getItemIds();
         cmbItemId.getItems().addAll(ItemIds);
     }
 
     public void setCustomerData(String customerId) throws SQLException, ClassNotFoundException {
-        Customer c1 = customerDAO.search(customerId);
+        CustomerDTO c1 = customerBO.searchForCustomer(customerId);
         if (c1 == null) {
             new Alert(Alert.AlertType.WARNING, "Empty Result Set");
         } else {
@@ -238,12 +231,12 @@ public class NewOrderController {
     }
 
     public void setItemData(String id) throws SQLException, ClassNotFoundException {
-        Item item1 = itemDAO.search(id);
-        txtDescription.setText(item1.getDescription());
-        txtUnitPrice.setText(String.valueOf(item1.getUnitPrice()));
-        cmbItemId.setValue(item1.getCode());
+        ItemDTO itemDTO1 = itemBO.searchForItemId(id);
+        txtDescription.setText(itemDTO1.getDescription());
+        txtUnitPrice.setText(String.valueOf(itemDTO1.getUnitPrice()));
+        cmbItemId.setValue(itemDTO1.getCode());
         if (isExists(id)==-1){
-            txtQtyOnHand.setText(String.valueOf(item1.getQtyOnHand()));
+            txtQtyOnHand.setText(String.valueOf(itemDTO1.getQtyOnHand()));
         }else {
             for (CartTm temp:obList){
                 if (temp.getCode().equals(id)){
@@ -273,7 +266,7 @@ public class NewOrderController {
             total+=temptm.getTotal();
             items.add(new ItemDetails(lblOrderId.getText(),temptm.getCode(),temptm.getUnitPrice(),temptm.getQty()));
         }
-        Order order=new Order(
+        OrderDTO orderDTO =new OrderDTO(
                 lblOrderId.getText(),
                 cmbCustId.getValue(),
                 f.format(date),
@@ -281,9 +274,9 @@ public class NewOrderController {
                 total,
                 items
         );
-        if (purchaseOrderBO.purchaseOrder(order)){
+        if (purchaseOrderBO.purchaseOrder(orderDTO)){
             tblCart.getItems().clear();
-            lblOrderId.setText(new OrderDAOImpl().getOrderId());                                      //you have to fix this...
+            lblOrderId.setText(purchaseOrderBO.getOrderId());
             new Alert(Alert.AlertType.CONFIRMATION,"Order Placed..").show();
         }else{
             new Alert(Alert.AlertType.WARNING,"Try Again..").show();
